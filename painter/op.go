@@ -69,3 +69,13 @@ func (op *Figure) Do(t screen.Texture) bool {
 	t.Fill(image.Rect(op.x-50, op.y, op.x+50, op.y+100), op.c, draw.Src)
 	return false
 }
+
+type Move struct {
+	x, y int
+	Figures []Figure
+}
+
+
+func ResetScreen(t screen.Texture) {
+	t.Fill(t.Bounds(), color.Black, draw.Src)
+}
