@@ -1,4 +1,4 @@
-module github.com/roman-mazur/architecture-lab-3
+module github.com/archit3cture-labs/3-lab
 
 go 1.20
 
