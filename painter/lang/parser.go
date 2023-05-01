@@ -11,25 +11,22 @@ import (
 	"github.com/archit3cture-labs/3-lab/painter"
 )
 
-// Parser уміє прочитати дані з вхідного io.Reader та повернути список операцій представлені вхідним скриптом.
 type Parser struct {
 }
 
-// Parse reads and parses input from the provided io.Reader and returns the corresponding list of painter.Operation.
 func (p *Parser) Parse(in io.Reader) ([]painter.Operation, error) {
 	scanner := bufio.NewScanner(in)
 	scanner.Split(bufio.ScanLines)
 
 	var result []painter.Operation
-	for scanner.Scan() { // loop through the input stream using the scanner
+	for scanner.Scan() { 
 		commandLine := scanner.Text()
 
-		oprtn := parse(commandLine) // parse the command line into an operation
+		oprtn := parse(commandLine) 
 		if oprtn == nil {
 			return nil, fmt.Errorf("Failed to parse this command: %s", commandLine)
 		}
 
-		// Replace any previous BgRectangle operation with the new one
 		if bgRect, ok := oprtn.(*painter.BgRectangle); ok {
 			for i, oldOp := range result {
 				if _, ok := oldOp.(*painter.BgRectangle); ok {
