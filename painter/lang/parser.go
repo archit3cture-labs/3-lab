@@ -1,21 +1,84 @@
 package lang
 
 import (
+	"bufio"
+	"fmt"
+	"image/color"
 	"io"
+	"strconv"
+	"strings"
 
 	"github.com/archit3cture-labs/3-lab/painter"
 )
 
-// Parser ÑƒÐ¼Ñ–Ñ” Ð¿Ñ€Ð¾Ñ‡Ð¸Ñ‚Ð°Ñ‚Ð¸ Ð´Ð°Ð½Ñ– Ð· Ð²Ñ…Ñ–Ð´Ð½Ð¾Ð³Ð¾ io.Reader Ñ‚Ð° Ð¿Ð¾Ð²ÐµÑ€Ð½ÑƒÑ‚Ð¸ ÑÐ¿Ð¸ÑÐ¾Ðº Ð¾Ð¿ÐµÑ€Ð°Ñ†Ñ–Ð¹ Ð¿Ñ€ÐµÐ´ÑÑ‚Ð°Ð²Ð»ÐµÐ½Ñ– Ð²Ñ…Ñ–Ð´Ð½Ð¸Ð¼ ÑÐºÑ€Ð¸Ð¿Ñ‚Ð¾Ð¼.
+// Parser óì³º ïðî÷èòàòè äàí³ ç âõ³äíîãî io.Reader òà ïîâåðíóòè ñïèñîê îïåðàö³é ïðåäñòàâëåí³ âõ³äíèì ñêðèïòîì.
 type Parser struct {
 }
 
+// Parse reads and parses input from the provided io.Reader and returns the corresponding list of painter.Operation.
 func (p *Parser) Parse(in io.Reader) ([]painter.Operation, error) {
-	var res []painter.Operation
+	scanner := bufio.NewScanner(in)
+	scanner.Split(bufio.ScanLines)
 
-	// TODO: Ð ÐµÐ°Ð»Ñ–Ð·ÑƒÐ²Ð°Ñ‚Ð¸ Ð¿Ð°Ñ€ÑÐ¸Ð½Ð³ ÐºÐ¾Ð¼Ð°Ð½Ð´.
-	res = append(res, painter.OperationFunc(painter.WhiteFill))
-	res = append(res, painter.UpdateOp)
+	var result []painter.Operation
+	for scanner.Scan() { // loop through the input stream using the scanner
+		commandLine := scanner.Text()
 
-	return res, nil
+		oprtn := parse(commandLine) // parse the command line into an operation
+		if oprtn == nil {
+			return nil, fmt.Errorf("Failed to parse this command: %s", commandLine)
+		}
+
+		// Replace any previous BgRectangle operation with the new one
+		if bgRect, ok := oprtn.(*painter.BgRectangle); ok {
+			for i, oldOp := range result {
+				if _, ok := oldOp.(*painter.BgRectangle); ok {
+					result[i] = bgRect
+					break
+				}
+			}
+		}
+		result = append(result, oprtn)
+	}
+	return result, nil
+}
+
+func parse(commandLine string) painter.Operation {
+	parts := strings.Split(commandLine, " ")
+	instruction := parts[0]
+	var args []string
+	if len(parts) > 1 {
+		args = parts[1:]
+	}
+	var iArgs []int
+	for _, arg := range args {
+		i, err := strconv.Atoi(arg)
+		if err == nil {
+			iArgs = append(iArgs, i)
+		}
+	}
+
+	var figureOps []painter.Figure
+
+	switch instruction {
+	case "white":
+		return painter.OperationFunc(painter.WhiteFill)
+	case "green":
+		return painter.OperationFunc(painter.GreenFill)
+	case "bgrect":
+		return &painter.BgRectangle{X1: iArgs[0], Y1: iArgs[1], X2: iArgs[2], Y2: iArgs[3]}
+	case "figure":
+		clr := color.RGBA{R: 255, G: 255, B: 0, A: 1}
+		figure := painter.Figure{X: iArgs[0], Y: iArgs[1], C: clr}
+		figureOps = append(figureOps, figure)
+		return &figure
+	case "move":
+		return &painter.Move{X: iArgs[0], Y: iArgs[1], Figures: figureOps}
+	case "reset":
+		figureOps = figureOps[0:0]
+		return painter.OperationFunc(painter.ResetScreen)
+	case "update":
+		return painter.UpdateOp
+	}
+	return nil
 }
