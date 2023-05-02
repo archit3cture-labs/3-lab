@@ -13,49 +13,47 @@ import (
 
 func Test_parse_struct(t *testing.T) {
 	tests := []struct {
-		op      painter.Operation
-		command string
 		name    string
-	}{
+		command string
+		op      painter.Operation
+	}{ 
 		{
-			op:      &painter.Move{X: 100, Y: 100},
-			command: "move 100 100",
-			name:    "move",
-		},
-		{
-			op:      painter.UpdateOp,
-			command: "update",
-			name:    "update painter",
-		},
-		{
-			op:      &painter.Figure{X: 200, Y: 200, C: color.RGBA{R: 255, G: 255, B: 0, A: 1}},
-			command: "figure 200 200",
-			name:    "figure",
-		},
-		{
-			op:      &painter.BgRectangle{X1: 0, Y1: 0, X2: 100, Y2: 100},
+			name:    "background rectangle",
 			command: "bgrect 0 0 100 100",
-			name:    "background of rect",
+			op:      &painter.BgRectangle{X1: 0, Y1: 0, X2: 100, Y2: 100},
 		},
 		{
-			op:      nil,
+			name:    "figure",
+			command: "figure 200 200",
+			op:      &painter.Figure{X: 200, Y: 200, C: color.RGBA{R: 255, G: 255, B: 0, A: 1}},
+		},
+		{
+			name:    "move",
+			command: "move 100 100",
+			op:      &painter.Move{X: 100, Y: 100},
+		},
+		{
+			name:    "update",
+			command: "update",
+			op:      painter.UpdateOp,
+		},
+		{
+			name:    "invalid command",
 			command: "invalidcommand",
-			name:    "command is invalid",
+			op:      nil,
 		},
 	}
 
-	parser := &lang.Parser{}
-
-	for _, tc := range tests {
+	for _, tc := range tests { 
 		t.Run(tc.name, func(t *testing.T) {
-			ops, err := parser.Parse(strings.NewReader(tc.command))
-			if tc.op == nil {
+			parser := &lang.Parser{}
+			ops, err := parser.Parse(strings.NewReader(tc.command)) 
+			if tc.op == nil { 
 				assert.Error(t, err)
-			} else {
+			} else { 
 				require.NoError(t, err)
-				require.Len(t, ops, 1)
-				assert.IsType(t, tc.op, ops[0])
-				assert.Equal(t, tc.op, ops[0])
+				assert.IsType(t, tc.op, ops[1])
+				assert.Equal(t, tc.op, ops[1])
 			}
 		})
 	}
@@ -63,24 +61,24 @@ func Test_parse_struct(t *testing.T) {
 
 func Test_parse_func(t *testing.T) {
 	tests := []struct {
-		op      painter.Operation
-		command string
 		name    string
+		command string
+		op      painter.Operation
 	}{
 		{
-			op:      painter.OperationFunc(painter.GreenFill),
-			command: "green",
-			name:    "filling with green",
-		},
-		{
-			op:      painter.OperationFunc(painter.WhiteFill),
-			command: "white",
 			name:    "filling with white",
+			command: "white",
+			op:      painter.OperationFunc(painter.WhiteFill),
 		},
 		{
-			op:      painter.OperationFunc(painter.ResetScreen),
+			name:    "filling with green",
+			command: "green",
+			op:      painter.OperationFunc(painter.GreenFill),
+		},
+		{
+			name:    "reseting screen",
 			command: "reset",
-			name:    "resetting screen",
+			op:      painter.OperationFunc(painter.ResetScreen),
 		},
 	}
 
@@ -89,10 +87,9 @@ func Test_parse_func(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			ops, err := parser.Parse(strings.NewReader(tc.command))
-			require.NoError(t, err)
-			require.Len(t, ops, 1)
+			require.NoError(t, err)        
+			require.Len(t, ops, 1)       
 			assert.IsType(t, tc.op, ops[0])
-
 		})
 	}
 }
