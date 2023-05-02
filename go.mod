@@ -3,6 +3,7 @@ module github.com/archit3cture-labs/3-lab
 go 1.20
 
 require (
+	github.com/stretchr/objx v0.5.0 // indirect
 	dmitri.shuralyov.com/gpu/mtl v0.0.0-20221208032759-85de2813cf6b // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4 // indirect
