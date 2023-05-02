@@ -1,9 +1,8 @@
 package painter
 
 import (
-	"image/color"
-
 	"image"
+	"image/color"
 
 	"golang.org/x/exp/shiny/screen"
 	"golang.org/x/image/draw"
@@ -71,15 +70,14 @@ func (op *Figure) Do(t screen.Texture) bool {
 }
 
 type Move struct {
-	X, Y int
-	Figures []Figure
+	X, Y    int
+	Figures []*Figure
 }
 
 func (op *Move) Do(t screen.Texture) bool {
 	for i := range op.Figures {
 		op.Figures[i].X += op.X
-		op.Figures[i].X += op.X
-		
+		op.Figures[i].Y += op.Y
 	}
 	return false
 }

@@ -11,24 +11,32 @@ import (
 	"github.com/archit3cture-labs/3-lab/painter"
 )
 
-
 type Parser struct {
 	lastBgColor painter.Operation
 	lastBgRect  *painter.BgRectangle
-	figures     []painter.Figure
+	figures     []*painter.Figure
 	moveOps     []painter.Operation
 	updateOp    painter.Operation
 }
 
+func (p *Parser) initialize() {
+	if p.lastBgColor == nil {
+		p.lastBgColor = painter.OperationFunc(painter.ResetScreen)
+	}
+	if p.updateOp != nil {
+		p.updateOp = nil
+	}
+}
 
 func (p *Parser) Parse(in io.Reader) ([]painter.Operation, error) {
+	p.initialize()
 	scanner := bufio.NewScanner(in)
 	scanner.Split(bufio.ScanLines)
 
-	for scanner.Scan() { // loop through the input stream using the scanner
+	for scanner.Scan() { 
 		commandLine := scanner.Text()
 
-		err := p.parse(commandLine) // parse the command line into an operation
+		err := p.parse(commandLine) 
 		if err != nil {
 			return nil, err
 		}
@@ -51,7 +59,7 @@ func (p *Parser) finalResult() []painter.Operation {
 	if len(p.figures) != 0 {
 		println(len(p.figures))
 		for _, figure := range p.figures {
-			res = append(res, &figure)
+			res = append(res, figure)
 		}
 	}
 	if p.updateOp != nil {
@@ -83,8 +91,6 @@ func (p *Parser) parse(commandLine string) error {
 		}
 	}
 
-	var figureOps []painter.Figure
-
 	switch instruction {
 	case "white":
 		p.lastBgColor = painter.OperationFunc(painter.WhiteFill)
@@ -95,9 +101,9 @@ func (p *Parser) parse(commandLine string) error {
 	case "figure":
 		clr := color.RGBA{R: 255, G: 255, B: 0, A: 1}
 		figure := painter.Figure{X: iArgs[0], Y: iArgs[1], C: clr}
-		p.figures = append(p.figures, figure)
+		p.figures = append(p.figures, &figure)
 	case "move":
-		moveOp := painter.Move{X: iArgs[0], Y: iArgs[1], Figures: figureOps}
+		moveOp := painter.Move{X: iArgs[0], Y: iArgs[1], Figures: p.figures}
 		p.moveOps = append(p.moveOps, &moveOp)
 	case "reset":
 		p.resetState()
