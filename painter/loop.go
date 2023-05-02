@@ -21,7 +21,7 @@ type Loop struct {
 	Mq messageQueue
 }
 
-var size = image.Pt(400, 400)
+var size = image.Pt(800, 800)
 
 // Start запускає цикл подій. Цей метод потрібно запустити до того, як викликати на ньому будь-які інші методи.
 func (l *Loop) Start(s screen.Screen) {
@@ -36,7 +36,7 @@ func (l *Loop) Start(s screen.Screen) {
 
 func (l *Loop) eventProcess() {
 	for {
-		if op := l.Mq.pull(); op != nil {
+		if op := l.Mq.Pull(); op != nil {
 			update := op.Do(l.next)
 			if update {
 				l.Receiver.Update(l.next)
@@ -50,7 +50,7 @@ func (l *Loop) eventProcess() {
 func (l *Loop) Post(op Operation) {
 	// TODO: реалізувати додавання операції в чергу. Поточна імплементація
 	if op != nil {
-		l.Mq.push(op)
+		l.Mq.Push(op)
 	}
 }
 
@@ -64,11 +64,11 @@ type messageQueue struct {
 	Queue []Operation
 }
 
-func (Mq *messageQueue) push(op Operation) {
+func (Mq *messageQueue) Push(op Operation) {
 	Mq.Queue = append(Mq.Queue, op)
 }
 
-func (Mq *messageQueue) pull() Operation {
+func (Mq *messageQueue) Pull() Operation {
 	if len(Mq.Queue) == 0 {
 		return nil
 	}
