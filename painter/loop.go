@@ -6,39 +6,36 @@ import (
 	"golang.org/x/exp/shiny/screen"
 )
 
-// Receiver РѕС‚СЂРёРјСѓС” С‚РµРєСЃС‚СѓСЂСѓ, СЏРєР° Р±СѓР»Р° РїС–РґРіРѕС‚РѕРІР»РµРЅР° РІ СЂРµР·СѓР»СЊС‚Р°С‚С– РІРёРєРѕРЅР°РЅРЅСЏ РєРѕРјР°РЅРґ Сѓ С†РёРµР»С– РїРѕРґС–Р№.
+// Receiver отримує текстуру, яка була підготовлена в результаті виконання команд у циелі подій.
 type Receiver interface {
 	Update(t screen.Texture)
 }
 
-// Loop СЂРµР°Р»С–Р·СѓС” С†РёРєР» РїРѕРґС–Р№ РґР»СЏ С„РѕСЂРјСѓРІР°РЅРЅСЏ С‚РµРєСЃС‚СѓСЂРё РѕС‚СЂРёРјР°РЅРѕС— С‡РµСЂРµР· РІРёРєРѕРЅР°РЅРЅСЏ РѕРїРµСЂР°С†С–Р№ РѕС‚СЂРёРјР°РЅРёС… Р· РІРЅСѓС‚СЂС–С€РЅСЊРѕС— С‡РµСЂРіРё.
+// Loop реалізує цикл подій для формування текстури отриманої через виконання операцій отриманих з внутрішньої черги.
 type Loop struct {
 	Receiver Receiver
 
-	next screen.Texture // С‚РµРєСЃС‚СѓСЂР°, СЏРєР° Р·Р°СЂР°Р· С„РѕСЂРјСѓС”С‚СЊСЃСЏ
-	prev screen.Texture // С‚РµРєСЃС‚СѓСЂР°, СЏРєР° Р±СѓР»Р° РІС–РґРїСЂР°РІР»РµРЅСЏ РѕСЃС‚Р°РЅРЅСЊРѕРіРѕ СЂР°Р·Сѓ Сѓ Receiver
+	next screen.Texture // текстура, яка зараз формується
+	prev screen.Texture // текстура, яка була відправленя останнього разу у Receiver
 
-	Mq messageQueue
+	MsgQueue messageQueue
 }
 
 var size = image.Pt(800, 800)
 
-// Start Р·Р°РїСѓСЃРєР°С” С†РёРєР» РїРѕРґС–Р№. Р¦РµР№ РјРµС‚РѕРґ РїРѕС‚СЂС–Р±РЅРѕ Р·Р°РїСѓСЃС‚РёС‚Рё РґРѕ С‚РѕРіРѕ, СЏРє РІРёРєР»РёРєР°С‚Рё РЅР° РЅСЊРѕРјСѓ Р±СѓРґСЊ-СЏРєС– С–РЅС€С– РјРµС‚РѕРґРё.
+// Start запускає цикл подій. Цей метод потрібно запустити до того, як викликати на ньому будь-які інші методи.
 func (l *Loop) Start(s screen.Screen) {
 	l.next, _ = s.NewTexture(size)
 	l.prev, _ = s.NewTexture(size)
 
-	// TODO: С–РЅС–С†С–Р°Р»С–Р·СѓРІР°С‚Рё С‡РµСЂРіСѓ РїРѕРґС–Р№.
-	// TODO: Р·Р°РїСѓСЃС‚РёС‚Рё СЂСѓС‚РёРЅСѓ РѕР±СЂРѕР±РєРё РїРѕРІС–РґРѕРјР»РµРЅСЊ Сѓ С‡РµСЂР·С– РїРѕРґС–Р№.
-	l.Mq = messageQueue{}
+	l.MsgQueue = messageQueue{}
 	go l.eventProcess()
 }
 
 func (l *Loop) eventProcess() {
 	for {
-		if op := l.Mq.Pull(); op != nil {
-			update := op.Do(l.next)
-			if update {
+		if op := l.MsgQueue.Pull(); op != nil {
+			if update := op.Do(l.next); update {
 				l.Receiver.Update(l.next)
 				l.next, l.prev = l.prev, l.next
 			}
@@ -46,34 +43,34 @@ func (l *Loop) eventProcess() {
 	}
 }
 
-// Post РґРѕРґР°С” РЅРѕРІСѓ РѕРїРµСЂР°С†С–СЋ Сѓ РІРЅСѓС‚СЂС–С€РЅСЋ С‡РµСЂРіСѓ.
+// Post додає нову операцію у внутрішню чергу.
 func (l *Loop) Post(op Operation) {
-	// TODO: СЂРµР°Р»С–Р·СѓРІР°С‚Рё РґРѕРґР°РІР°РЅРЅСЏ РѕРїРµСЂР°С†С–С— РІ С‡РµСЂРіСѓ. РџРѕС‚РѕС‡РЅР° С–РјРїР»РµРјРµРЅС‚Р°С†С–СЏ
+	// TODO: реалізувати додавання операції в чергу. Поточна імплементація
 	if op != nil {
-		l.Mq.Push(op)
+		l.MsgQueue.Push(op)
 	}
 }
 
-// StopAndWait СЃРёРіРЅР°Р»С–Р·СѓС”
+// StopAndWait сигналізує
 func (l *Loop) StopAndWait() {
 
 }
 
-// TODO: СЂРµР°Р»С–Р·СѓРІР°С‚Рё РІР»Р°СЃРЅСѓ С‡РµСЂРіСѓ РїРѕРІС–РґРѕРјР»РµРЅСЊ.
+// TODO: реалізувати власну чергу повідомлень.
 type messageQueue struct {
 	Queue []Operation
 }
 
-func (Mq *messageQueue) Push(op Operation) {
-	Mq.Queue = append(Mq.Queue, op)
+func (MsgQueue *messageQueue) Push(op Operation) {
+	MsgQueue.Queue = append(MsgQueue.Queue, op)
 }
 
-func (Mq *messageQueue) Pull() Operation {
-	if len(Mq.Queue) == 0 {
+func (MsgQueue *messageQueue) Pull() Operation {
+	if len(MsgQueue.Queue) == 0 {
 		return nil
 	}
 
-	op := Mq.Queue[0]
-	Mq.Queue = Mq.Queue[1:]
+	op := MsgQueue.Queue[0]
+	MsgQueue.Queue = MsgQueue.Queue[1:]
 	return op
 }
