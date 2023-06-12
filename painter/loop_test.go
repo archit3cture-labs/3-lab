@@ -1,4 +1,4 @@
-package test
+package painter
 
 import (
 	"image"
@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/archit3cture-labs/3-lab/painter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/exp/shiny/screen"
@@ -69,7 +68,7 @@ func TestLoop_Post_Success(t *testing.T) {
 	texture := image.Pt(800, 800)
 	screenMock.On("NewTexture", texture).Return(textureMock, nil)
 	receiverMock.On("Update", textureMock).Return()
-	loop := painter.Loop{
+	loop := Loop{
 		Receiver: receiverMock,
 	}
 
@@ -97,7 +96,7 @@ func TestLoop_Post_Failure(t *testing.T) {
 	texture := image.Pt(800, 800)
 	screenMock.On("NewTexture", texture).Return(textureMock, nil)
 	receiverMock.On("Update", textureMock).Return()
-	loop := painter.Loop{
+	loop := Loop{
 		Receiver: receiverMock,
 	}
 
@@ -125,7 +124,7 @@ func TestLoop_Post_Multiple_Success(t *testing.T) {
 	texture := image.Pt(800, 800)
 	screenMock.On("NewTexture", texture).Return(textureMock, nil)
 	receiverMock.On("Update", textureMock).Return()
-	loop := painter.Loop{
+	loop := Loop{
 		Receiver: receiverMock,
 	}
 
